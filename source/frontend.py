@@ -8,18 +8,26 @@ class FrontEnd:
         self.tk_root = tk.Tk()
         self.tk_root.title("Phroto - Imageviewer")
         self.tk_root.protocol("WM_DELETE_WINDOW", self.close)
+        self.tk_root.columnconfigure(0, weight=1)
+        self.tk_root.rowconfigure(0, weight=1)
 
         self.cv2_obj = ImageView()
 
+        content = tk.Frame(self.tk_root)
 
-        rleft = tk.Button(self.tk_root, text="rleft", command=lambda: self.displayImage(self.cv2_obj.rotateImage(self.current_image, Rotation.LEFT)))
-        rleft.pack(padx=10, pady=10)
-        rright = tk.Button(self.tk_root, text="rright", command=lambda: self.displayImage(self.cv2_obj.rotateImage(self.current_image, Rotation.RIGHT)))
-        rright.pack(padx=10, pady=10)
+        content.grid(column=0, row=0, sticky="nsew")
+        content.columnconfigure(0, weight=1)
+        content.rowconfigure(1, weight=1)
 
-        self.panel = tk.Label(self.tk_root)
-        self.panel.pack(padx=10, pady=10)
+        interactionbar = tk.Frame(content, padx=10, pady=10)
+        interactionbar.grid(column=0, row=0, sticky="ew")
+        rleft = tk.Button(interactionbar, text="rleft", command=lambda: self.displayImage(self.cv2_obj.rotateImage(self.current_image, Rotation.LEFT)))
+        rleft.grid(column=0, row=0, padx=(0, 5))
+        rright = tk.Button(interactionbar, text="rright", command=lambda: self.displayImage(self.cv2_obj.rotateImage(self.current_image, Rotation.RIGHT)))
+        rright.grid(column=1, row=0, padx=(0, 5))
 
+        self.panel = tk.Label(content, pady=10, padx=10)
+        self.panel.grid(column=0, row=1)
 
         self.current_image = self.cv2_obj.readImage(path)
         self.displayImage(self.current_image)
