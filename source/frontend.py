@@ -3,15 +3,16 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from imageview import ImageView
 from custom_types import Rotation
+from typing import List
 import os
 from constants import PROJECT_ROOT, ASSETS, WORKING_DIR, THEME
 from custom_types import ThemeMode
 
 class FrontEnd:
-    def __init__(self, path: str, imagelist: List, mode: ThemeMode):
+    def __init__(self, imagelist: List, mode: ThemeMode):
         self.tk_root = tk.Tk()
         self.tk_root.title("Phroto - Imageviewer")
-        self.tk_root.protocol("WM_DELETE_WINDOW", self.close)
+        self.tk_root.protocol("WM_DELETE_WINDOW", self._close)
         self.tk_root.columnconfigure(0, weight=1)
         self.tk_root.rowconfigure(0, weight=1)
 
@@ -21,6 +22,8 @@ class FrontEnd:
         self.tk_root.tk.call("set_theme", self.mode.lower())
 
         self.cv2_obj = ImageView()
+        self.zoom_factor = 1.0
+        self.current_image = None
 
         content = tk.Frame(self.tk_root)
 
@@ -32,45 +35,125 @@ class FrontEnd:
         interactionbar.grid(column=0, row=0, sticky="ew")
 
         # next Button
-        nleft = ttk.Button(interactionbar, text="<-", width=5, command=lambda: self.displayImage(self.nextImage(-1)))
+        nleft = ttk.Button(interactionbar, text="<-", width=5, command=lambda: self._displayImage(self._nextImage(-1)))
         nleft.grid(column=0, row=0, padx=(0, 5))
-        nright = ttk.Button(interactionbar, text="->", width=5, command=lambda: self.displayImage(self.nextImage(1)))
+        nright = ttk.Button(interactionbar, text="->", width=5, command=lambda: self._displayImage(self._nextImage(1)))
         nright.grid(column=1, row=0, padx=(0, 20))
 
         # rotate Buttons
-        rleft = ttk.Button(interactionbar, text="rleft", command=lambda: self.displayImage(self.cv2_obj.rotateImage(self.current_image, Rotation.LEFT)))
+        rleft = ttk.Button(
+            interactionbar,
+            text="rleft",
+            command=lambda: self._displayImage(self.cv2_obj.rotateImage(self.base_image, Rotation.LEFT)),
+        )
         rleft.grid(column=2, row=0, padx=(0, 5))
-        rright = ttk.Button(interactionbar, text="rright", command=lambda: self.displayImage(self.cv2_obj.rotateImage(self.current_image, Rotation.RIGHT)))
+        rright = ttk.Button(
+            interactionbar,
+            text="rright",
+            command=lambda: self._displayImage(self.cv2_obj.rotateImage(self.base_image, Rotation.RIGHT)),
+        )
         rright.grid(column=3, row=0, padx=(0, 5))
 
-        # Image panel
-        self.panel = ttk.Label(content, padding=10)
-        self.panel.grid(column=0, row=1)
+        # zoom Image
+        self.zoomB = ttk.Scale(
+            interactionbar,
+            from_=0.0,
+            to=8.0,
+            value=self.zoom_factor,
+            orient="horizontal",
+            command=self._zoom,
+        )
+        self.zoomB.grid(column=4, row=0, padx=(0, 5), sticky="ew")
+        interactionbar.columnconfigure(4, weight=1)
 
-        self.imageList = imagelist
-        self.imageIndex = 0
-        self.current_image = self.cv2_obj.readImage(path)
-        self.displayImage(self.current_image)
+        view_frame = ttk.Frame(content)
+        view_frame.grid(column=0, row=1, sticky="nsew")
+        view_frame.columnconfigure(0, weight=1)
+        view_frame.rowconfigure(0, weight=1)
 
-    def nextImage(self, direction: int):
-        if self.imageIndex + direction < 0:
-            self.imageIndex = len(self.imageList)
-        if self.imageIndex + direction > len(self.imageList) - 1:
-            self.imageIndex = 0
+        self.canvas = tk.Canvas(view_frame, bg="black", highlightthickness=0)
+        self.canvas.grid(column=0, row=0, sticky="nsew")
+
+        # keep image centered when smaller than the canvas
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+
+        y_scroll = ttk.Scrollbar(view_frame, orient="vertical", command=self.canvas.yview)
+        x_scroll = ttk.Scrollbar(view_frame, orient="horizontal", command=self.canvas.xview)
+        self.canvas.configure(xscrollcommand=x_scroll.set, yscrollcommand=y_scroll.set)
+
+        y_scroll.grid(column=1, row=0, sticky="ns")
+        x_scroll.grid(column=0, row=1, sticky="ew")
+
+        self.image_id = self.canvas.create_image(0, 0, anchor="nw")
+
+        self.image_list = imagelist
+        self.image_index = 0
+        self._displayImage(self.cv2_obj.readImage(os.path.join(WORKING_DIR, self.image_list[self.image_index])))
+
+    def _nextImage(self, direction: int):
+        if self.image_index + direction < 0:
+            self.image_index = len(self.image_list) - 1
+        elif self.image_index + direction > len(self.image_list) - 1:
+            self.image_index = 0
         else:
-            self.imageIndex = self.imageIndex + direction
+            self.image_index = self.image_index + direction
 
-        return self.cv2_obj.readImage(os.path.join(WORKING_DIR, self.imageList[self.imageIndex]))
+        return self.cv2_obj.readImage(os.path.join(WORKING_DIR, self.image_list[self.image_index]))
 
-    def changeTheme(self, theme: Theme) -> None:
+    def _zoom(self, value):
+        zoom_value = float(value)
+        self.zoom_factor = max(0.01, zoom_value)
+        self._renderZoomedImage()
+
+    def _renderZoomedImage(self):
+        if self.base_image is None:
+            return
+
+        display_image = self.cv2_obj.zoomImage(self.base_image, self.zoom_factor)
+        imgtk = ImageTk.PhotoImage(image=Image.fromarray(display_image))
+        # keep a reference to the array and the PhotoImage
+        self.current_image = display_image
+        self.current_phototk = imgtk
+        self.canvas.itemconfigure(self.image_id, image=imgtk)
+        self.canvas.config(scrollregion=(0, 0, display_image.shape[1], display_image.shape[0]))
+        self._position_image()
+
+    def _displayImage(self, image) -> None:
+        self.base_image = image
+        self.zoom_factor = 1.0
+        self.zoomB.set(self.zoom_factor)
+        self._renderZoomedImage()
+
+    def _changeTheme(self, theme: Theme) -> None:
         self.mode = theme
 
-    def displayImage(self, image) -> None:
-        self.current_image = image
-        imgtk = ImageTk.PhotoImage(image=Image.fromarray(self.current_image))
-        self.panel.imgtk = imgtk
-        self.panel.config(image=imgtk)
+    def _close(self):
+        self.tk_root.destroy()
 
-    def close(self):
-              self.tk_root.destroy()
+    def _on_canvas_configure(self, event):
+        # When the canvas resizes, reposition the image to stay centered if possible.
+        self._position_image()
 
+    def _position_image(self):
+        # Position the image inside the canvas. Center if smaller than canvas,
+        # otherwise anchor at top-left so scrolling works.
+        if not hasattr(self, 'current_image') or self.current_image is None:
+            return
+
+        try:
+            img_w = int(self.current_image.shape[1])
+            img_h = int(self.current_image.shape[0])
+        except Exception:
+            return
+
+        canvas_w = self.canvas.winfo_width()
+        canvas_h = self.canvas.winfo_height()
+
+        if img_w <= canvas_w and img_h <= canvas_h:
+            x = (canvas_w - img_w) // 2
+            y = (canvas_h - img_h) // 2
+        else:
+            x = 0
+            y = 0
+
+        self.canvas.coords(self.image_id, x, y)
