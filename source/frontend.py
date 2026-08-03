@@ -31,6 +31,7 @@ class FrontEnd:
         content.columnconfigure(0, weight=1)
         content.rowconfigure(1, weight=1)
 
+
         interactionbar = ttk.Frame(content, padding=10)
         interactionbar.grid(column=0, row=0, sticky="ew")
 
@@ -83,6 +84,13 @@ class FrontEnd:
         self.image_index = 0
         self._displayImage(self.cv2_obj.readImage(os.path.join(WORKING_DIR, self.image_list[self.image_index])))
 
+        # bottom infobar
+        infobar = ttk.Frame(content, padding=10)
+        infobar.grid(column=0, row=2, sticky="nsew")
+
+        self.nameL = ttk.Label(infobar, text=f"{self.image_list[self.image_index]}")
+        self.nameL.grid(column=0, row=0, padx=(0, 5))
+
         # keyboard shortcut
         self.tk_root.bind("<Left>", lambda val: self._displayImage(self._nextImage(-1)))
         self.tk_root.bind("<Right>", lambda val: self._displayImage(self._nextImage(1)))
@@ -97,6 +105,7 @@ class FrontEnd:
         else:
             self.image_index = self.image_index + direction
 
+        self.nameL.configure(text=self.image_list[self.image_index])
         return self.cv2_obj.readImage(os.path.join(WORKING_DIR, self.image_list[self.image_index]))
 
     def _zoom(self, value):
