@@ -90,6 +90,10 @@ class FrontEnd:
         self.image_index = 0
         self._displayImage(self.cv2_obj.readImage(os.path.join(WORKING_DIR, self.image_list[self.image_index])))
 
+        # keyboard shortcut
+        self.tk_root.bind("<Left>", lambda val: self._displayImage(self._nextImage(-1)))
+        self.tk_root.bind("<Right>", lambda val: self._displayImage(self._nextImage(1)))
+
     def _nextImage(self, direction: int):
         if self.image_index + direction < 0:
             self.image_index = len(self.image_list) - 1
