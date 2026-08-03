@@ -58,7 +58,7 @@ class FrontEnd:
         self.zoomB = ttk.Scale(
             interactionbar,
             from_=0.0,
-            to=8.0,
+            to=16.0,
             value=self.zoom_factor,
             orient="horizontal",
             command=self._zoom,
@@ -77,13 +77,6 @@ class FrontEnd:
         # keep image centered when smaller than the canvas
         self.canvas.bind("<Configure>", self._on_canvas_configure)
 
-        y_scroll = ttk.Scrollbar(view_frame, orient="vertical", command=self.canvas.yview)
-        x_scroll = ttk.Scrollbar(view_frame, orient="horizontal", command=self.canvas.xview)
-        self.canvas.configure(xscrollcommand=x_scroll.set, yscrollcommand=y_scroll.set)
-
-        y_scroll.grid(column=1, row=0, sticky="ns")
-        x_scroll.grid(column=0, row=1, sticky="ew")
-
         self.image_id = self.canvas.create_image(0, 0, anchor="nw")
 
         self.image_list = imagelist
@@ -93,6 +86,8 @@ class FrontEnd:
         # keyboard shortcut
         self.tk_root.bind("<Left>", lambda val: self._displayImage(self._nextImage(-1)))
         self.tk_root.bind("<Right>", lambda val: self._displayImage(self._nextImage(1)))
+        self.canvas.bind("<Button-1>", self._drag_start)
+        self.canvas.bind("<B1-Motion>", self._drag_image)
 
     def _nextImage(self, direction: int):
         if self.image_index + direction < 0:
@@ -119,7 +114,6 @@ class FrontEnd:
         self.current_image = display_image
         self.current_phototk = imgtk
         self.canvas.itemconfigure(self.image_id, image=imgtk)
-        self.canvas.config(scrollregion=(0, 0, display_image.shape[1], display_image.shape[0]))
         self._position_image()
 
     def _displayImage(self, image) -> None:
@@ -138,9 +132,22 @@ class FrontEnd:
         # When the canvas resizes, reposition the image to stay centered if possible.
         self._position_image()
 
+    def _drag_start(self, event):
+        self.drag_start_x = event.x
+        self.drag_start_y = event.y
+
+    def _drag_image(self, event):
+        dx = event.x - self.drag_start_x
+        dy = event.y - self.drag_start_y
+
+        self.canvas.move(self.image_id, dx, dy)
+
+        self.drag_start_x = event.x
+        self.drag_start_y = event.y
+
     def _position_image(self):
         # Position the image inside the canvas. Center if smaller than canvas,
-        # otherwise anchor at top-left so scrolling works.
+        # otherwise anchor at top-left
         if not hasattr(self, 'current_image') or self.current_image is None:
             return
 
