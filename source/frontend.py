@@ -90,6 +90,9 @@ class FrontEnd:
 
         self.nameL = ttk.Label(infobar, text=f"{self.image_list[self.image_index]}")
         self.nameL.grid(column=0, row=0, padx=(0, 5))
+        
+        self.dimensionL = ttk.Label(infobar, text=f"{self.base_image.shape[0]} x {self.base_image.shape[1]}")
+        self.dimensionL.grid(column=1, row=0, padx=(20, 5))
 
         # keyboard shortcut
         self.tk_root.bind("<Left>", lambda val: self._displayImage(self._nextImage(-1)))
@@ -106,6 +109,7 @@ class FrontEnd:
             self.image_index = self.image_index + direction
 
         self.nameL.configure(text=self.image_list[self.image_index])
+        self.dimensionL.configure(text=f"{self.base_image.shape[0]} x {self.base_image.shape[1]}")
         return self.cv2_obj.readImage(os.path.join(WORKING_DIR, self.image_list[self.image_index]))
 
     def _zoom(self, value):
