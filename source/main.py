@@ -1,10 +1,11 @@
 from os import listdir, path
+from typing import List
 
-from frontend import FrontEnd
+from frontend import Application
 from constants import WORKING_DIR, PROJECT_ROOT, IMAGETYPES
 from custom_types import ThemeMode
 
-def listImages() -> List:
+def list_images() -> List:
     images = []
     for items in listdir(WORKING_DIR):
         if (items.endswith(IMAGETYPES)):
@@ -12,8 +13,8 @@ def listImages() -> List:
     return images
 
 if __name__ == "__main__":
-    print(listImages())
+    print(list_images())
 
-    phroton = FrontEnd(listImages(), ThemeMode.DARK)
+    phroton = Application(list_images(), ThemeMode.DARK)
     phroton.tk_root.mainloop()
 
