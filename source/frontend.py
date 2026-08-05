@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, Button, Scale, Canvas, Label
+from tkinter import ttk, Button, Scale, Canvas, Label, Checkbutton
 from PIL import Image, ImageTk
 from imageview import ImageView
 from custom_types import Rotation
@@ -42,6 +42,12 @@ class Panel():
         l.grid(column=location[0], row=location[1], padx=(0, 5))
         return l
 
+    def slider(self, command, location: Tuple) -> Checkbutton:
+        c = ttk.Checkbutton(self.frame, text="mode", command=command, style="Switch.TCheckbutton")
+        c.grid(column=location[0], row=location[1], padx=(0,5))
+        return c
+
+
 
 class InteractionBar(Panel):
     def __init__(self, root) -> None:
@@ -65,7 +71,7 @@ class ViewFrame(Panel):
         self.frame.rowconfigure(0, weight=1)
 
 class Application:
-    def __init__(self, imagelist: List, mode: ThemeMode) -> None
+    def __init__(self, imagelist: List, mode: ThemeMode) -> None:
         self.image_list = imagelist
         self.mode = mode
         self.image_index = 0
@@ -124,6 +130,7 @@ class Application:
         info_bar = InfoBar(content)
         self.name_l = info_bar.label(text=f"{self.image_list[self.image_index]}", location=(0,0))
         self.dimension_l = info_bar.label(text=f"{self.base_image.shape[0]} x {self.base_image.shape[1]}", location=(1,0))
+        self.mode_switch = info_bar.slider(command=lambda: self._change_theme(), location=(2,0))
 
     def _set_keyboard_shortcut(self) -> None:
         self.tk_root.bind("<Left>", lambda val: self._display_image(self._next_image(-1)))
@@ -166,8 +173,18 @@ class Application:
         self.zoomB.set(self.zoom_factor)
         self._render_zoomed_image()
 
-    def _change_theme(self, theme: Theme) -> None:
-        self.mode = theme
+    def _change_theme(self) -> None:
+        if self.mode is not None:
+            if self.mode is ThemeMode.LIGHT:
+                self.mode = ThemeMode.DARK
+                self.canvas.configure(bg='black')
+            else:
+                self.mode = ThemeMode.LIGHT
+                self.canvas.configure(bg='white')
+        else:
+            self.mode = ThemeMode.DARK
+
+        self.tk_root.tk.call("set_theme", self.mode.lower())
 
     def _close(self) -> None:
         self.tk_root.destroy()
