@@ -15,12 +15,12 @@ class Panel():
         self.padding = 10
         self.frame = ttk.Frame(self.root, padding=self.padding)
 
-    def button(self, text: str, command,  location: Tuple, width: int | Literal[''] = "") -> Button:
+    def button(self, text: str, command,  location: Tuple, width: int | Literal[''] = "") -> ttk.Button:
         b = ttk.Button(self.frame, text=text, width=width, command=command)
         b.grid(column=location[0], row=location[1], padx=(0, 5))
         return b
 
-    def scale(self, from_: float, to: float, value: float, command, location: Tuple) -> Scale:
+    def scale(self, from_: float, to: float, value: float, command, location: Tuple) -> ttk.Scale:
         s = ttk.Scale(
             self.frame,
             from_=0.0,
@@ -37,12 +37,12 @@ class Panel():
         c.grid(column=location[0], row=location[1], sticky="nsew")
         return c
 
-    def label(self, text: str, location: Tuple) -> Label:
+    def label(self, text: str, location: Tuple) -> ttk.Label:
         l = ttk.Label(self.frame, text=text)
         l.grid(column=location[0], row=location[1], padx=(0, 5))
         return l
 
-    def slider(self, command, location: Tuple) -> Checkbutton:
+    def slider(self, command, location: Tuple) -> ttk.Checkbutton:
         c = ttk.Checkbutton(self.frame, text="mode", command=command, style="Switch.TCheckbutton")
         c.grid(column=location[0], row=location[1], padx=(0,5))
         return c
@@ -71,7 +71,7 @@ class ViewFrame(Panel):
         self.frame.rowconfigure(0, weight=1)
 
 class Application:
-    def __init__(self, imagelist: List, mode: ThemeMode) -> None:
+    def __init__(self, imagelist: List, mode: str) -> None:
         self.image_list = imagelist
         self.mode = mode
         self.image_index = 0

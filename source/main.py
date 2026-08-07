@@ -17,4 +17,3 @@ if __name__ == "__main__":
 
     phroton = Application(list_images(), ThemeMode.DARK)
     phroton.tk_root.mainloop()
-
