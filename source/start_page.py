@@ -36,7 +36,6 @@ class StartPage(tk.Frame):
         # canvas to display image
         self.canvas = view_frame.canvas(location=(0,0))
 
-
         # region: Bottom Bar for image information
         info_bar = InfoBar(self)
         self.name_l = info_bar.label(text=f"{self.controller.image_list[self.controller.image_index]}", location=(0,0))
@@ -51,7 +50,7 @@ class StartPage(tk.Frame):
 
         # load and display image
         self.image_id = self.canvas.create_image(0, 0, anchor="nw")
-        self._render_zoomed_image()
+        self._render_image()
 
         # keep image centered when smaller than the canvas
         self.canvas.bind("<Configure>", lambda event: self.controller._position_image(self.controller.base_image, self.canvas, self.image_id))
@@ -67,13 +66,13 @@ class StartPage(tk.Frame):
         self.name_l.configure(text=self.controller.image_list[self.controller.image_index])
         self.dimension_l.configure(text=f"{self.controller.base_image.shape[0]} x {self.controller.base_image.shape[1]}")
         self.controller.base_image = self.controller.cv2_obj.read_image(os.path.join(WORKING_DIR, self.controller.image_list[self.controller.image_index]))
-        self._render_zoomed_image()
-        #self.controller._display_image(self.base_image)
+        self.current_image = self.controller.base_image
 
-    def _zoom(self, value) -> None:
-        zoom_value = float(value)
-        self.zoom_factor = max(0.01, zoom_value)
-        self._render_zoomed_image()
+        self.zoom_factor = 1.0
+        self.zoomB.set(self.zoom_factor)
+
+        self._render_image()
+
 
     def _mouse_position(self, event) -> None:
         self.mouse_position_x = event.x
@@ -88,15 +87,26 @@ class StartPage(tk.Frame):
         self.mouse_position_x = event.x
         self.mouse_position_y = event.y
 
-    def _rotate_Image(self, rotation: Rotation) -> None:
-        self.controller.base_image = self.controller.cv2_obj.rotate_image(self.controller.base_image, rotation)
-        self._render_zoomed_image()
+    def _zoom(self, value) -> None:
+        zoom_value = float(value)
+        self.zoom_factor = max(0.01, zoom_value)
 
-    def _render_zoomed_image(self) -> None:
-        display_image = self.controller.cv2_obj.zoom_image(self.controller.base_image, self.zoom_factor)
-        imgtk = ImageTk.PhotoImage(image=Image.fromarray(display_image))
-        # keep a reference to the array and the PhotoImage
-        self.current_image = display_image
+        self._render_image()
+
+    def _rotate_Image(self, rotation: Rotation) -> None:
+        self.current_image = self.controller.cv2_obj.rotate_image(self.current_image, rotation)
+        self.zoom_factor = 1.0
+        self.zoomB.set(self.zoom_factor)
+
+        self._render_image()
+
+    def _render_image(self) -> None:
+        if self.current_image is None:
+            print("set current image")
+            self.current_image = self.controller.base_image
+
+        zoom_image = self.controller.cv2_obj.zoom_image(self.current_image, self.zoom_factor)
+        imgtk = ImageTk.PhotoImage(image=Image.fromarray(zoom_image))
         self.current_phototk = imgtk
         self.canvas.itemconfigure(self.image_id, image=imgtk)
         self.controller._position_image(self.current_image, self.canvas, self.image_id)
