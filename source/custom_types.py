@@ -7,3 +7,7 @@ class Rotation(Enum):
 class ThemeMode:
     DARK= "dark"
     LIGHT= "light"
+
+class Pages:
+    START= "start_page"
+    CUSTOMIZE= "customize_page"
