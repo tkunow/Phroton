@@ -9,6 +9,7 @@ from constants import PROJECT_ROOT, ASSETS, WORKING_DIR, THEME
 from custom_types import ThemeMode, Pages
 from cv2.typing import MatLike
 from start_page import StartPage
+from customize_page import CustomizePage
 
 class Application:
     def __init__(self, imagelist: List, mode: str) -> None:
@@ -32,6 +33,8 @@ class Application:
         self.pages = {}
         self.pages[Pages.START] = StartPage(parent=self.tk_root, controller=self)
         self.pages[Pages.START].grid(row=0, column=0, sticky="nsew")
+        self.pages[Pages.CUSTOMIZE] = CustomizePage(parent=self.tk_root, controller=self, image=self.base_image)
+        self.pages[Pages.CUSTOMIZE].grid(row=0, column=0, sticky="nsew")
 
         self.show_page(Pages.START)
 
