@@ -15,13 +15,12 @@ class StartPage(tk.Frame):
         self.zoom_factor = 1.0
         self.current_image = None
 
-        content = tk.Frame(self)
-        content.grid(column=0, row=0, sticky="nsew")
-        content.columnconfigure(0, weight=1)
-        content.rowconfigure(1, weight=1)
+        self.grid(column=0, row=0, sticky="nsew")
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
 
         # region: Top Bar for interaction with the image
-        interaction_bar = InteractionBar(root=content)
+        interaction_bar = InteractionBar(root=self)
         # next Button
         nleft = interaction_bar.button(text="<-", width=5, command=lambda: self._next_image(-1), location=(0,0))
         nright = interaction_bar.button(text="->", width=5, command=lambda: self._next_image(1), location=(1,0))
@@ -33,20 +32,20 @@ class StartPage(tk.Frame):
         customize = interaction_bar.button(text="customize", command=lambda: print("open customize"), location=(5,0))
 
         #region: Display the image
-        view_frame = ViewFrame(root=content)
+        view_frame = ViewFrame(root=self)
         # canvas to display image
         self.canvas = view_frame.canvas(location=(0,0))
 
 
         # region: Bottom Bar for image information
-        info_bar = InfoBar(content)
+        info_bar = InfoBar(self)
         self.name_l = info_bar.label(text=f"{self.controller.image_list[self.controller.image_index]}", location=(0,0))
         self.dimension_l = info_bar.label(text=f"{self.controller.base_image.shape[0]} x {self.controller.base_image.shape[1]}", location=(1,0))
         self.mode_switch = info_bar.slider(text="mode", command=lambda: self.controller._change_theme(), location=(2,0))
 
         # keyboard shortcut
-        content.bind("<Left>", lambda val: self._next_image(-1))
-        content.bind("<Right>", lambda val: self._next_image(1))
+        self.bind("<Left>", lambda val: self._next_image(-1))
+        self.bind("<Right>", lambda val: self._next_image(1))
         self.canvas.bind("<ButtonPress-1>", self._mouse_position)
         self.canvas.bind("<B1-Motion>", self._mouse_drag)
 
@@ -74,7 +73,7 @@ class StartPage(tk.Frame):
     def _zoom(self, value) -> None:
         zoom_value = float(value)
         self.zoom_factor = max(0.01, zoom_value)
-        self.controller._render_zoomed_image()
+        self._render_zoomed_image()
 
     def _mouse_position(self, event) -> None:
         self.mouse_position_x = event.x
@@ -90,8 +89,8 @@ class StartPage(tk.Frame):
         self.mouse_position_y = event.y
 
     def _rotate_Image(self, rotation: Rotation) -> None:
-        self.controller.base_image = self.controller.cv2_obj.rotate_image(self.base_image, rotation)
-        #self.controller._display_image(self.base_image)
+        self.controller.base_image = self.controller.cv2_obj.rotate_image(self.controller.base_image, rotation)
+        self._render_zoomed_image()
 
     def _render_zoomed_image(self) -> None:
         display_image = self.controller.cv2_obj.zoom_image(self.controller.base_image, self.zoom_factor)

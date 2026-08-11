@@ -29,12 +29,6 @@ class Application:
         self.cv2_obj = ImageView()
         self.base_image = self.cv2_obj.read_image(os.path.join(WORKING_DIR, self.image_list[self.image_index]))
 
-        #content = tk.Frame(self.tk_root)
-        #content.grid(column=0 ,row=0)
-        #content.grid_rowconfigure(0, weight=1)
-        #content.grid_columnconfigure(1, weight=1)
-
-
         self.pages = {}
         self.pages[Pages.START] = StartPage(parent=self.tk_root, controller=self)
         self.pages[Pages.START].grid(row=0, column=0, sticky="nsew")
@@ -65,16 +59,7 @@ class Application:
 
         self.tk_root.tk.call("set_theme", self.mode.lower())
 
-    #def _on_canvas_configure(self, event, image, canvas, image_id) -> None:
-    #    # When the canvas resizes, reposition the image to stay centered if possible.
-    #    self._position_image(image, canvas, image_id)
-
     def _position_image(self, image, canvas, image_id) -> None:
-        # Position the image inside the canvas. Center if smaller than canvas,
-        # otherwise anchor at top-left
-        #if not hasattr(self, 'current_image') or self.current_image is None:
-        #    return
-
         try:
             img_w = int(image.shape[1])
             img_h = int(image.shape[0])
