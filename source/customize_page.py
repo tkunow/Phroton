@@ -10,7 +10,7 @@ class CustomizePage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.parent = parent
         self.controller = controller
-        self.current_image = image
+        self.tmp_image = None
 
         # draw mode
         self.draw_mode = {
@@ -34,7 +34,7 @@ class CustomizePage(tk.Frame):
         view_frame = ViewFrame(root=self)
         # canvas to display image
         self.canvas = view_frame.canvas(location=(0,0))
-        self.current_image = image
+        self.current_image = image.copy()
         self.image_id = self.canvas.create_image(0, 0, anchor="nw")
         self._render_image()
 
@@ -52,15 +52,21 @@ class CustomizePage(tk.Frame):
         self.canvas.bind("<ButtonRelease-1>", self._mouse_draw)
         self.canvas.bind("<B1-Motion>", self._mouse_follow_position)
 
-    def _render_image(self) -> None:
-        imgtk = ImageTk.PhotoImage(image=Image.fromarray(self.current_image))
+    def _render_image(self, image=None) -> None:
+        display_image = None
+        if image is None:
+            display_image = self.current_image
+        else:
+            display_image = image
+
+        imgtk = ImageTk.PhotoImage(image=Image.fromarray(display_image))
         self.current_phototk = imgtk
         self.canvas.itemconfigure(self.image_id, image=imgtk)
         self.controller._position_image(self.current_image, self.canvas, self.image_id)
 
     def _reset_image(self) -> None:
         print("reset")
-        self.current_image = self.controller.base_image
+        self.current_image = self.controller.base_image.copy()
         self._render_image()
 
     def _switch_draw_mode(self, mode) -> None:
@@ -82,8 +88,8 @@ class CustomizePage(tk.Frame):
         if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
             image_xy = self.canvas.coords(self.image_id)
             self.draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
-            self.current_image = self.controller.cv2_obj._draw_rectangle(self.controller.base_image, self.draw_position_start, self.draw_position_end)
-            self._render_image()
+            self.tmp_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, self.draw_position_end)
+            self._render_image(self.tmp_image)
 
         self.mouse_position_x = event.x
         self.mouse_position_y = event.y
@@ -92,7 +98,8 @@ class CustomizePage(tk.Frame):
         if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
             image_xy = self.canvas.coords(self.image_id)
             self.draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
-            self.current_image = self.controller.cv2_obj._draw_rectangle(self.controller.base_image, self.draw_position_start, self.draw_position_end)
+            self.current_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, self.draw_position_end)
+            self.tmp_image = None
             self._render_image()
 
             print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {self.draw_position_end}")
@@ -109,4 +116,3 @@ class CustomizePage(tk.Frame):
             return True
         
         return False
-

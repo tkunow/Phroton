@@ -30,4 +30,5 @@ class ImageView:
         return cv2.resize(image, (scaled_width, scaled_height), interpolation=cv2.INTER_LINEAR)
 
     def _draw_rectangle(self, image, p1, p2) -> cv2.typing.MatLike:
-        return cv2.rectangle(image, p1, p2, (0,0,255), 5)
+        image_with_rectangle = image.copy()
+        return cv2.rectangle(image_with_rectangle, p1, p2, (0,0,255), 5)
