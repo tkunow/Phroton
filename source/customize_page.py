@@ -1,3 +1,6 @@
+from typing import Tuple
+from math import sqrt, pow
+
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
@@ -28,7 +31,10 @@ class CustomizePage(tk.Frame):
         interaction_bar = InteractionBar(root=self)
         back = interaction_bar.button(text="<-", width=5, command=lambda: self.controller.show_page(Pages.START), location=(0,0))
         reset = interaction_bar.button(text="reset", command=lambda: self._reset_image(), location=(1,0))
-        rectangle = interaction_bar.button(text="rectangle", command=lambda: self._switch_draw_mode(DrawMode.RECTANGLE), location=(2,0))
+        self.rectangle = interaction_bar.slider(text="rectangle", command=lambda: self._switch_draw_mode(DrawMode.RECTANGLE), location=(2,0))
+        self.circle = interaction_bar.slider(text="circle", command=lambda: self._switch_draw_mode(DrawMode.CIRCLE), location=(3,0))
+        self.line = interaction_bar.slider(text="line", command=lambda: self._switch_draw_mode(DrawMode.LINE), location=(4,0))
+        self.freehand = interaction_bar.slider(text="freehand", command=lambda: self._switch_draw_mode(DrawMode.FREEHAND), location=(5,0))
 
         #region: Display the image
         view_frame = ViewFrame(root=self)
@@ -71,38 +77,71 @@ class CustomizePage(tk.Frame):
 
     def _switch_draw_mode(self, mode) -> None:
         for key in self.draw_mode:
-            self.draw_mode[key] = False
-        self.draw_mode[mode] = True
+            if key is mode:
+                self.draw_mode[key] = True
+            else:
+                self.draw_mode[key] = False
+
+        if mode is not DrawMode.RECTANGLE:
+            self.rectangle.state(['!selected'])
+        if mode is not DrawMode.CIRCLE:
+            self.circle.state(['!selected'])
+        if mode is not DrawMode.LINE:
+            self.line.state(['!selected'])
+            self.line.selection_clear()
+        if mode is not DrawMode.FREEHAND:
+            self.freehand.state(['!selected'])
 
     def _mouse_start_position(self, event) -> None:
         self.mouse_position_x = event.x
         self.mouse_position_y = event.y
 
-        if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
+        if self._check_image_bounds():
             image_xy = self.canvas.coords(self.image_id)
             x = event.x - image_xy[0]
             y = event.y - image_xy[1]
             self.draw_position_start = (int(x), int(y))
+            if self.draw_mode[DrawMode.FREEHAND]:
+                self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, 5)
+                self._render_image()
+                print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {self.draw_position_start}")
 
     def _mouse_follow_position(self, event) -> None:
+        image_xy = self.canvas.coords(self.image_id)
+        draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
+
         if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
-            image_xy = self.canvas.coords(self.image_id)
-            self.draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
-            self.tmp_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, self.draw_position_end)
-            self._render_image(self.tmp_image)
+            self.tmp_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, draw_position_end)
+        elif self.draw_mode[DrawMode.LINE] and self._check_image_bounds():
+            self.tmp_image = self.controller.cv2_obj._draw_line(self.current_image, self.draw_position_start, draw_position_end)
+        elif self.draw_mode[DrawMode.CIRCLE] and self._check_image_bounds():
+            radius = self._distanceP2P(self.draw_position_start, draw_position_end)
+            self.tmp_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius)
+        elif self.draw_mode[DrawMode.FREEHAND] and self._check_image_bounds():
+            self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, draw_position_end, 5)
+            self.tmp_image = self.current_image
+            print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {draw_position_end}")
+
+        self._render_image(self.tmp_image)
 
         self.mouse_position_x = event.x
         self.mouse_position_y = event.y
 
     def _mouse_draw(self, event) -> None:
-        if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
-            image_xy = self.canvas.coords(self.image_id)
-            self.draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
-            self.current_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, self.draw_position_end)
-            self.tmp_image = None
-            self._render_image()
+        image_xy = self.canvas.coords(self.image_id)
+        draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
 
-            print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {self.draw_position_end}")
+        if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
+            self.current_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, draw_position_end)
+        if self.draw_mode[DrawMode.LINE] and self._check_image_bounds():
+            self.current_image = self.controller.cv2_obj._draw_line(self.current_image, self.draw_position_start, draw_position_end)
+        elif self.draw_mode[DrawMode.CIRCLE] and self._check_image_bounds():
+            radius = self._distanceP2P(self.draw_position_start, draw_position_end)
+            self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius)
+
+        print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {draw_position_end}")
+        self.tmp_image = None
+        self._render_image()
 
     def _check_image_bounds(self) -> bool:
         image_p1 = self.canvas.coords(self.image_id)
@@ -116,3 +155,6 @@ class CustomizePage(tk.Frame):
             return True
         
         return False
+
+    def _distanceP2P(self, p1: Tuple, p2: Tuple) -> int:
+        return int(sqrt(pow((p2[0] - p1[0]), 2) + pow((p2[1] - p1[1]), 2)))
