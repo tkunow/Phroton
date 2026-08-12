@@ -35,6 +35,7 @@ class CustomizePage(tk.Frame):
         self.circle = interaction_bar.slider(text="circle", command=lambda: self._switch_draw_mode(DrawMode.CIRCLE), location=(3,0))
         self.line = interaction_bar.slider(text="line", command=lambda: self._switch_draw_mode(DrawMode.LINE), location=(4,0))
         self.freehand = interaction_bar.slider(text="freehand", command=lambda: self._switch_draw_mode(DrawMode.FREEHAND), location=(5,0))
+        self.thickness = interaction_bar.dropdown(default=4, values=tuple(x for x in range(1,25)), location=(6,0))
 
         #region: Display the image
         view_frame = ViewFrame(root=self)
@@ -104,21 +105,20 @@ class CustomizePage(tk.Frame):
             self.draw_position_start = (int(x), int(y))
             if self.draw_mode[DrawMode.FREEHAND]:
                 self.last_freehand_position = self.draw_position_start
-                self._render_image()
 
     def _mouse_follow_position(self, event) -> None:
         image_xy = self.canvas.coords(self.image_id)
         draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
 
         if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
-            self.tmp_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, draw_position_end)
+            self.tmp_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, draw_position_end, self.thickness.current())
         elif self.draw_mode[DrawMode.LINE] and self._check_image_bounds():
-            self.tmp_image = self.controller.cv2_obj._draw_line(self.current_image, self.draw_position_start, draw_position_end)
+            self.tmp_image = self.controller.cv2_obj._draw_line(self.current_image, self.draw_position_start, draw_position_end, self.thickness.current())
         elif self.draw_mode[DrawMode.CIRCLE] and self._check_image_bounds():
             radius = self._distanceP2P(self.draw_position_start, draw_position_end)
-            self.tmp_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius)
+            self.tmp_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius, self.thickness.current())
         elif self.draw_mode[DrawMode.FREEHAND] and self._check_image_bounds():
-            self.current_image = self.controller.cv2_obj._draw_line(self.current_image, self.last_freehand_position, draw_position_end)
+            self.current_image = self.controller.cv2_obj._draw_line(self.current_image, self.last_freehand_position, draw_position_end, self.thickness.current())
             self.tmp_image = self.current_image
             self.last_freehand_position = draw_position_end
 
@@ -132,12 +132,12 @@ class CustomizePage(tk.Frame):
         draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
 
         if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
-            self.current_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, draw_position_end)
+            self.current_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, draw_position_end, self.thickness.current())
         if self.draw_mode[DrawMode.LINE] and self._check_image_bounds():
-            self.current_image = self.controller.cv2_obj._draw_line(self.current_image, self.draw_position_start, draw_position_end)
+            self.current_image = self.controller.cv2_obj._draw_line(self.current_image, self.draw_position_start, draw_position_end, self.thickness.current())
         elif self.draw_mode[DrawMode.CIRCLE] and self._check_image_bounds():
             radius = self._distanceP2P(self.draw_position_start, draw_position_end)
-            self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius)
+            self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius, self.thickness.current())
 
         self.tmp_image = None
         self._render_image()

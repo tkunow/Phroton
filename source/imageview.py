@@ -29,14 +29,14 @@ class ImageView:
         scaled_height = max(1, int(height * factor))
         return cv2.resize(image, (scaled_width, scaled_height), interpolation=cv2.INTER_LINEAR)
 
-    def _draw_rectangle(self, image, p1, p2) -> cv2.typing.MatLike:
+    def _draw_rectangle(self, image, p1, p2, thickness: int) -> cv2.typing.MatLike:
         image_with_rectangle = image.copy()
-        return cv2.rectangle(image_with_rectangle, p1, p2, (0,0,255), 5)
+        return cv2.rectangle(image_with_rectangle, p1, p2, (0,0,255), thickness)
 
-    def _draw_circle(self, image, p1, p2) -> cv2.typing.MatLike:
+    def _draw_circle(self, image, p1, p2, thickness: int) -> cv2.typing.MatLike:
         image_with_circle = image.copy()
-        return cv2.circle(image_with_circle, p1, p2, (0,0,255), 5)
+        return cv2.circle(image_with_circle, p1, p2, (0,0,255), thickness)
 
-    def _draw_line(self, image, p1, radius) -> cv2.typing.MatLike:
+    def _draw_line(self, image, p1, radius, thickness:int) -> cv2.typing.MatLike:
         image_with_line = image.copy()
-        return cv2.line(image_with_line, p1, radius, (0,0,255), 5)
+        return cv2.line(image_with_line, p1, radius, (0,0,255), thickness)

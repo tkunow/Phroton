@@ -40,6 +40,11 @@ class Panel():
         c.grid(column=location[0], row=location[1], padx=(0,5))
         return c
 
+    def dropdown(self, default: int, values:Tuple, location: Tuple) -> ttk.Combobox:
+        c = ttk.Combobox(self.frame, values=values)
+        c.current(default)
+        c.grid(column=location[0], row=location[1], padx=(0,5))
+        return c
 
 
 class InteractionBar(Panel):
