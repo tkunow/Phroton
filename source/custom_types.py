@@ -5,9 +5,15 @@ class Rotation(Enum):
     RIGHT = 90
 
 class ThemeMode:
-    DARK= "dark"
-    LIGHT= "light"
+    DARK = "dark"
+    LIGHT = "light"
 
 class Pages:
-    START= "start_page"
-    CUSTOMIZE= "customize_page"
+    START = "start_page"
+    CUSTOMIZE = "customize_page"
+
+class DrawMode:
+    RECTANGLE = "rectangle"
+    CIRCLE = "circle"
+    LINE = "line"
+    FREEHAND = "freehand"

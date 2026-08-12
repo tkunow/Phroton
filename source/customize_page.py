@@ -3,7 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 from layout_elements import InteractionBar, ViewFrame, InfoBar
-from custom_types import Pages
+from custom_types import Pages, DrawMode
 
 class CustomizePage(tk.Frame):
     def __init__(self, parent, controller, image) -> None:
@@ -13,9 +13,12 @@ class CustomizePage(tk.Frame):
         self.current_image = image
 
         # draw mode
-        self.mode_circle = False
-        self.mode_rectangle = False
-        self.mode_freehand = False
+        self.draw_mode = {
+            DrawMode.RECTANGLE: False,
+            DrawMode.CIRCLE: False,
+            DrawMode.LINE: False,
+            DrawMode.FREEHAND: False
+        }
 
         self.grid(column=0, row=0, sticky="nsew")
         self.columnconfigure(0, weight=1)
@@ -24,6 +27,8 @@ class CustomizePage(tk.Frame):
         # region: Top Bar for interaction with the image
         interaction_bar = InteractionBar(root=self)
         back = interaction_bar.button(text="<-", width=5, command=lambda: self.controller.show_page(Pages.START), location=(0,0))
+        reset = interaction_bar.button(text="reset", command=lambda: self._reset_image(), location=(1,0))
+        rectangle = interaction_bar.button(text="rectangle", command=lambda: self._switch_draw_mode(DrawMode.RECTANGLE), location=(2,0))
 
         #region: Display the image
         view_frame = ViewFrame(root=self)
@@ -42,54 +47,66 @@ class CustomizePage(tk.Frame):
         self.dimension_l = info_bar.label(text=f"{self.controller.base_image.shape[0]} x {self.controller.base_image.shape[1]}", location=(1,0))
         self.mode_switch = info_bar.slider(text="mode", command=lambda: self.controller._change_theme(), location=(2,0))
 
+        # keyboard shortcut
+        self.canvas.bind("<ButtonPress-1>", self._mouse_start_position)
+        self.canvas.bind("<ButtonRelease-1>", self._mouse_draw)
+        self.canvas.bind("<B1-Motion>", self._mouse_follow_position)
+
     def _render_image(self) -> None:
         imgtk = ImageTk.PhotoImage(image=Image.fromarray(self.current_image))
         self.current_phototk = imgtk
         self.canvas.itemconfigure(self.image_id, image=imgtk)
         self.controller._position_image(self.current_image, self.canvas, self.image_id)
 
-    #def _mouse_position(self, event) -> None:
-    #    self.mouse_position_x = event.x
-    #    self.mouse_position_y = event.y
+    def _reset_image(self) -> None:
+        print("reset")
+        self.current_image = self.controller.base_image
+        self._render_image()
 
-    #    if self.mode_rectangle and self._check_image_bounds():
-    #        image_xy = self.canvas.coords(self.image_id)
-    #        x = event.x - image_xy[0]
-    #        y = event.y - image_xy[1]
-    #        self.draw_position_start = (int(x), int(y))
+    def _switch_draw_mode(self, mode) -> None:
+        for key in self.draw_mode:
+            self.draw_mode[key] = False
+        self.draw_mode[mode] = True
 
-    #def _mouse_drag(self, event) -> None:
-    #    if not self.mode_circle and not self.mode_rectangle and not self.mode_freehand:
-    #        self._drag_image(event)
-    #    elif self.mode_rectangle and self._check_image_bounds():
-    #        image_xy = self.canvas.coords(self.image_id)
-    #        self.draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
-    #        self._render_zoomed_image(self.cv2_obj._draw_rectangle(self.base_image, self.draw_position_start, self.draw_position_end))
-    #        #self._display_image(self.cv2_obj._draw_rectangle(self.base_image, self.draw_position_start, self.draw_position_end))
+    def _mouse_start_position(self, event) -> None:
+        self.mouse_position_x = event.x
+        self.mouse_position_y = event.y
 
-    #    self.mouse_position_x = event.x
-    #    self.mouse_position_y = event.y
+        if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
+            image_xy = self.canvas.coords(self.image_id)
+            x = event.x - image_xy[0]
+            y = event.y - image_xy[1]
+            self.draw_position_start = (int(x), int(y))
 
-    #def _mouse_draw(self, event) -> None:
-    #    if self.mode_rectangle and self._check_image_bounds():
-    #        image_xy = self.canvas.coords(self.image_id)
-    #        self.draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
-    #        self.base_image = self.cv2_obj._draw_rectangle(self.base_image, self.draw_position_start, self.draw_position_end)
-    #        self._render_zoomed_image()
+    def _mouse_follow_position(self, event) -> None:
+        if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
+            image_xy = self.canvas.coords(self.image_id)
+            self.draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
+            self.current_image = self.controller.cv2_obj._draw_rectangle(self.controller.base_image, self.draw_position_start, self.draw_position_end)
+            self._render_image()
 
-    #        print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {self.draw_position_end}")
-    #        #self._display_image(self.base_image)
+        self.mouse_position_x = event.x
+        self.mouse_position_y = event.y
 
-    #def _check_image_bounds(self) -> bool:
-    #    image_p1 = self.canvas.coords(self.image_id)
-    #    image_p2 = [image_p1[0] + self.current_image.shape[1], image_p1[1] + self.current_image.shape[0]]
+    def _mouse_draw(self, event) -> None:
+        if self.draw_mode[DrawMode.RECTANGLE] and self._check_image_bounds():
+            image_xy = self.canvas.coords(self.image_id)
+            self.draw_position_end = (int(event.x - image_xy[0]), int(event.y - image_xy[1]))
+            self.current_image = self.controller.cv2_obj._draw_rectangle(self.controller.base_image, self.draw_position_start, self.draw_position_end)
+            self._render_image()
 
-    #    mouse_pos = [self.mouse_position_x, self.mouse_position_y]
-    #    print(f"top: {image_p1} | bottom {image_p2} | ")
-    #    print(f"width: {self.current_image.shape[1]} | height: {self.current_image.shape[0]}")
-    #    
-    #    if (image_p1[0] <= self.mouse_position_x <= image_p2[0] and image_p1[1] <= self.mouse_position_y <= image_p2[1]):
-    #        return True
-    #    
-    #    return False
+            print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {self.draw_position_end}")
+
+    def _check_image_bounds(self) -> bool:
+        image_p1 = self.canvas.coords(self.image_id)
+        image_p2 = [image_p1[0] + self.current_image.shape[1], image_p1[1] + self.current_image.shape[0]]
+
+        mouse_pos = [self.mouse_position_x, self.mouse_position_y]
+        print(f"top: {image_p1} | bottom {image_p2} | ")
+        print(f"width: {self.current_image.shape[1]} | height: {self.current_image.shape[0]}")
+        
+        if (image_p1[0] <= self.mouse_position_x <= image_p2[0] and image_p1[1] <= self.mouse_position_y <= image_p2[1]):
+            return True
+        
+        return False
 
