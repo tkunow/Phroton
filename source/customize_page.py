@@ -58,6 +58,8 @@ class CustomizePage(tk.Frame):
         self.canvas.bind("<ButtonRelease-1>", self._mouse_draw)
         self.canvas.bind("<B1-Motion>", self._mouse_follow_position)
 
+        self.last_freehand_position = None
+
     def _render_image(self, image=None) -> None:
         display_image = None
         if image is None:
@@ -71,7 +73,6 @@ class CustomizePage(tk.Frame):
         self.controller._position_image(self.current_image, self.canvas, self.image_id)
 
     def _reset_image(self) -> None:
-        print("reset")
         self.current_image = self.controller.base_image.copy()
         self._render_image()
 
@@ -102,9 +103,8 @@ class CustomizePage(tk.Frame):
             y = event.y - image_xy[1]
             self.draw_position_start = (int(x), int(y))
             if self.draw_mode[DrawMode.FREEHAND]:
-                self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, 5)
+                self.last_freehand_position = self.draw_position_start
                 self._render_image()
-                print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {self.draw_position_start}")
 
     def _mouse_follow_position(self, event) -> None:
         image_xy = self.canvas.coords(self.image_id)
@@ -118,9 +118,9 @@ class CustomizePage(tk.Frame):
             radius = self._distanceP2P(self.draw_position_start, draw_position_end)
             self.tmp_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius)
         elif self.draw_mode[DrawMode.FREEHAND] and self._check_image_bounds():
-            self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, draw_position_end, 5)
+            self.current_image = self.controller.cv2_obj._draw_line(self.current_image, self.last_freehand_position, draw_position_end)
             self.tmp_image = self.current_image
-            print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {draw_position_end}")
+            self.last_freehand_position = draw_position_end
 
         self._render_image(self.tmp_image)
 
@@ -139,7 +139,6 @@ class CustomizePage(tk.Frame):
             radius = self._distanceP2P(self.draw_position_start, draw_position_end)
             self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius)
 
-        print(f"MousePos: {self.mouse_position_x}, {self.mouse_position_y} | RelativeMousePos: {draw_position_end}")
         self.tmp_image = None
         self._render_image()
 
@@ -148,8 +147,6 @@ class CustomizePage(tk.Frame):
         image_p2 = [image_p1[0] + self.current_image.shape[1], image_p1[1] + self.current_image.shape[0]]
 
         mouse_pos = [self.mouse_position_x, self.mouse_position_y]
-        print(f"top: {image_p1} | bottom {image_p2} | ")
-        print(f"width: {self.current_image.shape[1]} | height: {self.current_image.shape[0]}")
         
         if (image_p1[0] <= self.mouse_position_x <= image_p2[0] and image_p1[1] <= self.mouse_position_y <= image_p2[1]):
             return True
