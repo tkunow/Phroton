@@ -36,6 +36,7 @@ class CustomizePage(tk.Frame):
         self.line = interaction_bar.slider(text="line", command=lambda: self._switch_draw_mode(DrawMode.LINE), location=(4,0))
         self.freehand = interaction_bar.slider(text="freehand", command=lambda: self._switch_draw_mode(DrawMode.FREEHAND), location=(5,0))
         self.thickness = interaction_bar.dropdown(default=4, values=tuple(x for x in range(1,25)), location=(6,0))
+        watermark = interaction_bar.button(text="watermark", command=lambda: self._add_watermark("watermark"), location=(7,0))
 
         #region: Display the image
         view_frame = ViewFrame(root=self)
@@ -76,6 +77,10 @@ class CustomizePage(tk.Frame):
     def _reset_image(self) -> None:
         self.current_image = self.controller.base_image.copy()
         self._render_image()
+
+    def _add_watermark(self, text:str = "watermark") -> None:
+        tmp = self.controller.cv2_obj.draw_watermark(self.current_image, text)
+        self._render_image(tmp)
 
     def _switch_draw_mode(self, mode) -> None:
         for key in self.draw_mode:
