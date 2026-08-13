@@ -33,13 +33,15 @@ class Application:
         self.pages = {}
         self.pages[Pages.START] = StartPage(parent=self.tk_root, controller=self)
         self.pages[Pages.START].grid(row=0, column=0, sticky="nsew")
-        self.pages[Pages.CUSTOMIZE] = CustomizePage(parent=self.tk_root, controller=self, image=self.base_image)
+        self.pages[Pages.CUSTOMIZE] = CustomizePage(parent=self.tk_root, controller=self)
         self.pages[Pages.CUSTOMIZE].grid(row=0, column=0, sticky="nsew")
 
         self.show_page(Pages.START)
 
     def show_page(self, page_name):
         page = self.pages[page_name]
+        if hasattr(page, "on_show"):
+            page.on_show()
         page.tkraise()
 
 

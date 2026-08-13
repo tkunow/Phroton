@@ -64,8 +64,8 @@ class StartPage(tk.Frame):
             self.controller.image_index = self.controller.image_index + direction
 
         self.name_l.configure(text=self.controller.image_list[self.controller.image_index])
-        self.dimension_l.configure(text=f"{self.controller.base_image.shape[0]} x {self.controller.base_image.shape[1]}")
         self.controller.base_image = self.controller.cv2_obj.read_image(os.path.join(WORKING_DIR, self.controller.image_list[self.controller.image_index]))
+        self.dimension_l.configure(text=f"{self.controller.base_image.shape[0]} x {self.controller.base_image.shape[1]}")
         self.current_image = self.controller.base_image
 
         self.zoom_factor = 1.0

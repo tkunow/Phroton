@@ -9,7 +9,7 @@ from layout_elements import InteractionBar, ViewFrame, InfoBar
 from custom_types import Pages, DrawMode
 
 class CustomizePage(tk.Frame):
-    def __init__(self, parent, controller, image) -> None:
+    def __init__(self, parent, controller) -> None:
         tk.Frame.__init__(self, parent)
         self.parent = parent
         self.controller = controller
@@ -42,7 +42,7 @@ class CustomizePage(tk.Frame):
         view_frame = ViewFrame(root=self)
         # canvas to display image
         self.canvas = view_frame.canvas(location=(0,0))
-        self.current_image = image.copy()
+        self.current_image = self.controller.base_image.copy()
         self.image_id = self.canvas.create_image(0, 0, anchor="nw")
         self._render_image()
 
@@ -61,6 +61,16 @@ class CustomizePage(tk.Frame):
         self.canvas.bind("<B1-Motion>", self._mouse_follow_position)
 
         self.last_freehand_position = None
+
+    def on_show(self) -> None:
+        """Start each customization session with the currently selected image."""
+        self.current_image = self.controller.base_image.copy()
+        self.tmp_image = None
+        self.name_l.configure(text=self.controller.image_list[self.controller.image_index])
+        self.dimension_l.configure(
+            text=f"{self.controller.base_image.shape[0]} x {self.controller.base_image.shape[1]}"
+        )
+        self._render_image()
 
     def _render_image(self, image=None) -> None:
         display_image = None
