@@ -98,6 +98,9 @@ class StartPage(tk.Frame):
         self.zoom_factor = 1.0
         self.zoomB.set(self.zoom_factor)
 
+        # write image to disk
+        self.controller.cv2_obj.save_image(self.controller.image_list[self.controller.image_index], self.current_image)
+
         self._render_image()
 
     def _render_image(self) -> None:

@@ -6,6 +6,11 @@ class ImageView:
     def _convertBGR2RGB(self, image) -> cv2.typing.MatLike:
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+    def save_image(self, name: str, image) -> None:
+        bgr_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        if not cv2.imwrite(name, bgr_img):
+            raise SystemError(f"Could not save image: {name}")
+
     def read_image(self, path: str, mode: int = cv2.IMREAD_COLOR) -> cv2.typing.MatLike:
         img = cv2.imread(path, mode)
     
