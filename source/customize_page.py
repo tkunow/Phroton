@@ -7,7 +7,6 @@ from PIL import Image, ImageTk
 
 from layout_elements import InteractionBar, ViewFrame, InfoBar
 from custom_types import Pages, DrawMode
-from dialog_page import DialogPage
 
 class CustomizePage(tk.Frame):
     def __init__(self, parent, controller) -> None:
@@ -36,14 +35,6 @@ class CustomizePage(tk.Frame):
             command=lambda: self._save_image(),
             location=(1,0)
             )
-        #save = interaction_bar.button(
-        #    text="save",
-        #    command=lambda: self.controller.add_page(
-        #        DialogPage(self.controller.tk_root, self.controller, "Do you want to save ... to disk", lambda: print("save to disk"))
-        #        ),
-        #    location=(1,0)
-        #    )
-
 
         reset = interaction_bar.button(text="reset", command=lambda: self._reset_image(), location=(2,0))
         self.rectangle = interaction_bar.slider(text="rectangle", command=lambda: self._switch_draw_mode(DrawMode.RECTANGLE), location=(3,0))
