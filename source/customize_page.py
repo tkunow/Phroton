@@ -2,11 +2,12 @@ from typing import Tuple
 from math import sqrt, pow
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
 
 from layout_elements import InteractionBar, ViewFrame, InfoBar
 from custom_types import Pages, DrawMode
+from dialog_page import DialogPage
 
 class CustomizePage(tk.Frame):
     def __init__(self, parent, controller) -> None:
@@ -29,14 +30,28 @@ class CustomizePage(tk.Frame):
 
         # region: Top Bar for interaction with the image
         interaction_bar = InteractionBar(root=self)
-        back = interaction_bar.button(text="<-", width=5, command=lambda: self.controller.show_page(Pages.START), location=(0,0))
-        reset = interaction_bar.button(text="reset", command=lambda: self._reset_image(), location=(1,0))
-        self.rectangle = interaction_bar.slider(text="rectangle", command=lambda: self._switch_draw_mode(DrawMode.RECTANGLE), location=(2,0))
-        self.circle = interaction_bar.slider(text="circle", command=lambda: self._switch_draw_mode(DrawMode.CIRCLE), location=(3,0))
-        self.line = interaction_bar.slider(text="line", command=lambda: self._switch_draw_mode(DrawMode.LINE), location=(4,0))
-        self.freehand = interaction_bar.slider(text="freehand", command=lambda: self._switch_draw_mode(DrawMode.FREEHAND), location=(5,0))
-        self.thickness = interaction_bar.dropdown(default=4, values=tuple(x for x in range(1,25)), location=(6,0))
-        watermark = interaction_bar.button(text="watermark", command=lambda: self._add_watermark("watermark"), location=(7,0))
+        back = interaction_bar.button(text="<-", width=5, command=lambda: self.controller.pop_page(), location=(0,0))
+        save = interaction_bar.button(
+            text="save",
+            command=lambda: self._save_image(),
+            location=(1,0)
+            )
+        #save = interaction_bar.button(
+        #    text="save",
+        #    command=lambda: self.controller.add_page(
+        #        DialogPage(self.controller.tk_root, self.controller, "Do you want to save ... to disk", lambda: print("save to disk"))
+        #        ),
+        #    location=(1,0)
+        #    )
+
+
+        reset = interaction_bar.button(text="reset", command=lambda: self._reset_image(), location=(2,0))
+        self.rectangle = interaction_bar.slider(text="rectangle", command=lambda: self._switch_draw_mode(DrawMode.RECTANGLE), location=(3,0))
+        self.circle = interaction_bar.slider(text="circle", command=lambda: self._switch_draw_mode(DrawMode.CIRCLE), location=(4,0))
+        self.line = interaction_bar.slider(text="line", command=lambda: self._switch_draw_mode(DrawMode.LINE), location=(5,0))
+        self.freehand = interaction_bar.slider(text="freehand", command=lambda: self._switch_draw_mode(DrawMode.FREEHAND), location=(6,0))
+        self.thickness = interaction_bar.dropdown(default=4, values=tuple(x for x in range(1,25)), location=(7,0))
+        watermark = interaction_bar.button(text="watermark", command=lambda: self._add_watermark("watermark"), location=(8,0))
 
         #region: Display the image
         view_frame = ViewFrame(root=self)
@@ -84,13 +99,17 @@ class CustomizePage(tk.Frame):
         self.canvas.itemconfigure(self.image_id, image=imgtk)
         self.controller._position_image(self.current_image, self.canvas, self.image_id)
 
+    def _save_image(self) -> None:
+        save_name = filedialog.asksaveasfilename(initialfile=self.controller.image_list[self.controller.image_index], filetypes=[("picture", ("*.png", "*.bmp"))])
+        self.controller.cv2_obj.save_image(save_name, self.current_image)
+
     def _reset_image(self) -> None:
         self.current_image = self.controller.base_image.copy()
         self._render_image()
 
     def _add_watermark(self, text:str = "watermark") -> None:
-        tmp = self.controller.cv2_obj.draw_watermark(self.current_image, text)
-        self._render_image(tmp)
+        self.current_image = self.controller.cv2_obj.draw_watermark(self.current_image, text)
+        self._render_image()
 
     def _switch_draw_mode(self, mode) -> None:
         for key in self.draw_mode:

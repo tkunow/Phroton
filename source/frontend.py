@@ -6,10 +6,10 @@ from custom_types import Rotation
 from typing import List, Tuple, Literal
 import os
 from constants import PROJECT_ROOT, ASSETS, WORKING_DIR, THEME
-from custom_types import ThemeMode, Pages
+from custom_types import ThemeMode
 from cv2.typing import MatLike
 from start_page import StartPage
-from customize_page import CustomizePage
+from dialog_page import DialogPage
 
 class Application:
     def __init__(self, imagelist: List, mode: str) -> None:
@@ -30,20 +30,27 @@ class Application:
         self.cv2_obj = ImageView()
         self.base_image = self.cv2_obj.read_image(os.path.join(WORKING_DIR, self.image_list[self.image_index]))
 
-        self.pages = {}
-        self.pages[Pages.START] = StartPage(parent=self.tk_root, controller=self)
-        self.pages[Pages.START].grid(row=0, column=0, sticky="nsew")
-        self.pages[Pages.CUSTOMIZE] = CustomizePage(parent=self.tk_root, controller=self)
-        self.pages[Pages.CUSTOMIZE].grid(row=0, column=0, sticky="nsew")
+        self.page_list = []
+        self.page_list.append(StartPage(parent=self.tk_root, controller=self))
+        self._show_page()
 
-        self.show_page(Pages.START)
-
-    def show_page(self, page_name):
-        page = self.pages[page_name]
+    def _show_page(self) -> None:
+        page = self.page_list[-1]
         if hasattr(page, "on_show"):
             page.on_show()
         page.tkraise()
 
+    def add_page(self, page: ttk.Frame) -> None:
+        self.page_list.append(page)
+
+        self._show_page()
+
+    def pop_page(self) -> None:
+        page = self.page_list[-1]
+        self.page_list.pop()
+        page.destroy()
+
+        self._show_page()
 
     # TODO: für customize image
     #def _display_image(self, image, image_id) -> None:

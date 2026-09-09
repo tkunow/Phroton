@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 from layout_elements import InteractionBar, ViewFrame, InfoBar
 from custom_types import Rotation, Pages
 from constants import WORKING_DIR  
+from customize_page import CustomizePage
 
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -29,7 +30,7 @@ class StartPage(tk.Frame):
         rright = interaction_bar.button(text="rright", command=lambda: self._rotate_Image(Rotation.RIGHT), location=(3,0))
         # zoom Image
         self.zoomB = interaction_bar.scale(from_=0.0, to=16.0, value=self.zoom_factor, command=self._zoom, location=(4,0))
-        customize = interaction_bar.button(text="customize", command=lambda: self.controller.show_page(Pages.CUSTOMIZE), location=(5,0))
+        customize = interaction_bar.button(text="customize", command=lambda: self.controller.add_page(CustomizePage(parent=self.controller.tk_root, controller=self.controller)), location=(5,0))
 
         #region: Display the image
         view_frame = ViewFrame(root=self)
