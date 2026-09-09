@@ -9,7 +9,6 @@ from constants import PROJECT_ROOT, ASSETS, WORKING_DIR, THEME
 from custom_types import ThemeMode
 from cv2.typing import MatLike
 from start_page import StartPage
-from dialog_page import DialogPage
 
 class Application:
     def __init__(self, imagelist: List, mode: str) -> None:
