@@ -7,7 +7,6 @@ from PIL import Image, ImageTk
 
 from layout_elements import InteractionBar, ViewFrame, InfoBar
 from custom_types import Pages, DrawMode
-from dialog_page import DialogPage
 
 class CustomizePage(tk.Frame):
     def __init__(self, parent, controller) -> None:
