@@ -6,7 +6,7 @@ from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
 
 from layout_elements import InteractionBar, ViewFrame, InfoBar
-from custom_types import Pages, DrawMode
+from custom_types import DrawMode
 
 class CustomizePage(tk.Frame):
     def __init__(self, parent, controller) -> None:

@@ -5,7 +5,7 @@ from tkinter import ttk, Button, Scale, Canvas, Label, Checkbutton
 from PIL import Image, ImageTk
 
 from layout_elements import InteractionBar, ViewFrame, InfoBar
-from custom_types import Rotation, Pages
+from custom_types import Rotation
 from constants import WORKING_DIR  
 from customize_page import CustomizePage
 
