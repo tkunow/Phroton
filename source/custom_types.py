@@ -13,3 +13,4 @@ class DrawMode:
     CIRCLE = "circle"
     LINE = "line"
     FREEHAND = "freehand"
+    CROP = "crop"

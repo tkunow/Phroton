@@ -20,7 +20,8 @@ class CustomizePage(tk.Frame):
             DrawMode.RECTANGLE: False,
             DrawMode.CIRCLE: False,
             DrawMode.LINE: False,
-            DrawMode.FREEHAND: False
+            DrawMode.FREEHAND: False,
+            DrawMode.CROP: False
         }
 
         self.grid(column=0, row=0, sticky="nsew")
@@ -43,6 +44,7 @@ class CustomizePage(tk.Frame):
         self.freehand = interaction_bar.slider(text="freehand", command=lambda: self._switch_draw_mode(DrawMode.FREEHAND), location=(6,0))
         self.thickness = interaction_bar.dropdown(default=4, values=tuple(x for x in range(1,25)), location=(7,0))
         watermark = interaction_bar.button(text="watermark", command=lambda: self._add_watermark("watermark"), location=(8,0))
+        self.crop = interaction_bar.slider(text="crop", command=lambda: self._switch_draw_mode(DrawMode.CROP), location=(9,0))
 
         #region: Display the image
         view_frame = ViewFrame(root=self)
@@ -118,6 +120,8 @@ class CustomizePage(tk.Frame):
             self.line.selection_clear()
         if mode is not DrawMode.FREEHAND:
             self.freehand.state(['!selected'])
+        if mode is not DrawMode.CROP:
+            self.crop.state(['!selected'])
 
     def _mouse_start_position(self, event) -> None:
         self.mouse_position_x = event.x
@@ -146,6 +150,8 @@ class CustomizePage(tk.Frame):
             self.current_image = self.controller.cv2_obj._draw_line(self.current_image, self.last_freehand_position, draw_position_end, self.thickness.current())
             self.tmp_image = self.current_image
             self.last_freehand_position = draw_position_end
+        elif self.draw_mode[DrawMode.CROP] and self._check_image_bounds():
+            self.tmp_image = self.controller.cv2_obj._draw_rectangle(self.current_image, self.draw_position_start, draw_position_end, 2, (100, 100, 100))
 
         self._render_image(self.tmp_image)
 
@@ -163,6 +169,13 @@ class CustomizePage(tk.Frame):
         elif self.draw_mode[DrawMode.CIRCLE] and self._check_image_bounds():
             radius = self._distanceP2P(self.draw_position_start, draw_position_end)
             self.current_image = self.controller.cv2_obj._draw_circle(self.current_image, self.draw_position_start, radius, self.thickness.current())
+        elif self.draw_mode[DrawMode.CROP] and self._check_image_bounds():
+            start = (min(self.draw_position_start[1], draw_position_end[1]), max(self.draw_position_start[1], draw_position_end[1]))
+            end = (min(self.draw_position_start[0], draw_position_end[0]), max(self.draw_position_start[0], draw_position_end[0]))
+            self.current_image = self.current_image[start[0]:start[1], end[0]:end[1]]
+
+            self.crop.state(['!selected'])
+            self.draw_mode[DrawMode.CROP] = False
 
         self.tmp_image = None
         self._render_image()
