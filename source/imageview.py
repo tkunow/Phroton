@@ -71,9 +71,9 @@ class ImageView:
         blended = image.astype(numpy.float32) * (1.0 - alpha) + watermark_color * alpha
         return blended.astype(image.dtype)
 
-    def _draw_rectangle(self, image, p1, p2, thickness: int) -> cv2.typing.MatLike:
+    def _draw_rectangle(self, image, p1, p2, thickness: int, color: tuple[int, int, int] = (0,0,255)) -> cv2.typing.MatLike:
         image_with_rectangle = image.copy()
-        return cv2.rectangle(image_with_rectangle, p1, p2, (0,0,255), thickness)
+        return cv2.rectangle(image_with_rectangle, p1, p2, color, thickness)
 
     def _draw_circle(self, image, p1, p2, thickness: int) -> cv2.typing.MatLike:
         image_with_circle = image.copy()
