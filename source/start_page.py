@@ -43,6 +43,7 @@ class StartPage(tk.Frame):
         self.dimension_l = info_bar.label(text=f"{self.controller.base_image.shape[0]} x {self.controller.base_image.shape[1]}", location=(1,0))
         self.mode_switch = info_bar.slider(text="mode", command=lambda: self.controller._change_theme(), location=(2,0))
 
+        self.focus_set()
         # keyboard shortcut
         self.bind("<Left>", lambda val: self._next_image(-1))
         self.bind("<Right>", lambda val: self._next_image(1))
@@ -55,7 +56,7 @@ class StartPage(tk.Frame):
 
         # keep image centered when smaller than the canvas
         self.canvas.bind("<Configure>", lambda event: self.controller._position_image(self.controller.base_image, self.canvas, self.image_id))
-        
+
     def _next_image(self, direction: int) -> None:
         if self.controller.image_index + direction < 0:
             self.controller.image_index = len(self.controller.image_list) - 1

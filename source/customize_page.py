@@ -64,6 +64,7 @@ class CustomizePage(tk.Frame):
         self.mode_switch = info_bar.slider(text="mode", command=lambda: self.controller._change_theme(), location=(2,0))
 
         # keyboard shortcut
+        self.focus_set()
         self.canvas.bind("<ButtonPress-1>", self._mouse_start_position)
         self.canvas.bind("<ButtonRelease-1>", self._mouse_draw)
         self.canvas.bind("<B1-Motion>", self._mouse_follow_position)
