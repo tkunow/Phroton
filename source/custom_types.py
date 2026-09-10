@@ -14,3 +14,7 @@ class DrawMode:
     LINE = "line"
     FREEHAND = "freehand"
     CROP = "crop"
+
+class KeyEvent(Enum):
+    DOWN = 0
+    UP = 1

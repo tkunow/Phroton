@@ -6,7 +6,7 @@ from custom_types import Rotation
 from typing import List, Tuple, Literal
 import os
 from constants import PROJECT_ROOT, ASSETS, WORKING_DIR, THEME
-from custom_types import ThemeMode
+from custom_types import ThemeMode, KeyEvent
 from cv2.typing import MatLike
 from start_page import StartPage
 
@@ -26,6 +26,12 @@ class Application:
         self.tk_root.tk.call("source", self.theme_path)
         self.tk_root.tk.call("set_theme", self.mode.lower())
 
+        self.controll_keys = {
+                "ctrl": False,
+                "shift": False,
+                "alt": False
+            }
+
         self.cv2_obj = ImageView()
         self.base_image = self.cv2_obj.read_image(os.path.join(WORKING_DIR, self.image_list[self.image_index]))
 
@@ -38,6 +44,7 @@ class Application:
         if hasattr(page, "on_show"):
             page.on_show()
         page.tkraise()
+        page.focus_set()
 
     def add_page(self, page: ttk.Frame) -> None:
         self.page_list.append(page)
@@ -50,6 +57,21 @@ class Application:
         page.destroy()
 
         self._show_page()
+
+    def check_controll_keys(self, key, event: KeyEvent) -> bool:
+        if event is KeyEvent.UP:
+            if key.keycode == 37 or key.keycode == 105:
+                self.controll_keys["ctrl"] = False
+                print("ctrl up")
+            return True
+        
+        if event is KeyEvent.DOWN:
+            if key.keycode == 37 or key.keycode == 105:
+                self.controll_keys["ctrl"] = True
+                print("ctrl down")
+            return True
+        
+        return False
 
     # TODO: für customize image
     #def _display_image(self, image, image_id) -> None:
