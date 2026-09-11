@@ -31,6 +31,7 @@ class Application:
                 "shift": False,
                 "alt": False
             }
+        self.tk_root.bind("<FocusOut>", lambda val: self._reset_controll_keys())
 
         self.cv2_obj = ImageView()
         self.base_image = self.cv2_obj.read_image(os.path.join(WORKING_DIR, self.image_list[self.image_index]))
@@ -38,6 +39,10 @@ class Application:
         self.page_list = []
         self.page_list.append(StartPage(parent=self.tk_root, controller=self))
         self._show_page()
+
+    def _reset_controll_keys(self) -> None:
+        self.controll_keys = dict.fromkeys(self.controll_keys, False)
+        print(self.controll_keys)
 
     def _show_page(self) -> None:
         page = self.page_list[-1]
@@ -58,16 +63,33 @@ class Application:
 
         self._show_page()
 
-    def check_controll_keys(self, key) -> bool:
-        if key.keycode == 37 or key.keycode == 105:
-            self.controll_keys["ctrl"] = not self.controll_keys["ctrl"]
-            return True
-        elif key.keycode == 64 or key.keycode == 108:
-            self.controll_keys["alt"] = not self.controll_keys["alt"]
-            return True
-        elif key.keycode == 50 or key.keycode == 62:
-            self.controll_keys["shift"] = not self.controll_keys["shift"]
-            return True
+    def check_controll_keys(self, key, event: KeyEvent) -> bool:
+        if event is KeyEvent.UP:
+            if key.keycode == 37 or key.keycode == 105:
+                self.controll_keys["ctrl"] = False
+                print("ctrl > ", self.controll_keys["ctrl"])
+                return True
+            elif key.keycode == 64 or key.keycode == 108:
+                self.controll_keys["alt"] = False
+                print("alt > ", self.controll_keys["alt"])
+                return True
+            elif key.keycode == 50 or key.keycode == 62:
+                self.controll_keys["shift"] = False
+                print("shift > ", self.controll_keys["shift"])
+                return True
+        elif event is KeyEvent.DOWN:
+            if key.keycode == 37 or key.keycode == 105:
+                self.controll_keys["ctrl"] = True
+                print("ctrl > ", self.controll_keys["ctrl"])
+                return True
+            elif key.keycode == 64 or key.keycode == 108:
+                self.controll_keys["alt"] = True
+                print("alt > ", self.controll_keys["alt"])
+                return True
+            elif key.keycode == 50 or key.keycode == 62:
+                self.controll_keys["shift"] = True
+                print("shift > ", self.controll_keys["shift"])
+                return True
         return False
 
     # TODO: für customize image

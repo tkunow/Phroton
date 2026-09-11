@@ -51,7 +51,7 @@ class StartPage(tk.Frame):
         # self.bind("<Right>", lambda val: self._next_image(1))
 
         self.bind("<Key>", lambda val: self._keyhandler(val))
-        self.bind("<KeyRelease>", lambda val: self.controller.check_controll_keys(val))
+        self.bind("<KeyRelease>", lambda val: self.controller.check_controll_keys(val, KeyEvent.UP))
 
         self.canvas.bind("<ButtonPress-1>", self._mouse_position)
         self.canvas.bind("<B1-Motion>", self._mouse_drag)
@@ -64,7 +64,7 @@ class StartPage(tk.Frame):
         self.canvas.bind("<Configure>", lambda event: self.controller._position_image(self.controller.base_image, self.canvas, self.image_id))
 
     def _keyhandler(self, val):
-        if self.controller.check_controll_keys(val):
+        if self.controller.check_controll_keys(val, KeyEvent.DOWN):
             return
 
         if self.controller.controll_keys["ctrl"]:

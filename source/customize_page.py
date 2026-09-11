@@ -69,12 +69,12 @@ class CustomizePage(tk.Frame):
         self.canvas.bind("<B1-Motion>", self._mouse_follow_position)
 
         self.bind("<Key>", lambda val: self._keyhandler(val))
-        self.bind("<KeyRelease>", lambda val: self.controller.check_controll_keys(val))
+        self.bind("<KeyRelease>", lambda val: self.controller.check_controll_keys(val, KeyEvent.UP))
 
         self.last_freehand_position = None
 
     def _keyhandler(self, val):
-        if self.controller.check_controll_keys(val):
+        if self.controller.check_controll_keys(val, KeyEvent.DOWN):
             return
 
         if self.controller.controll_keys["ctrl"] and not self.controller.controll_keys["alt"] and not self.controller.controll_keys["shift"]:
@@ -84,22 +84,22 @@ class CustomizePage(tk.Frame):
                 self._reset_image()
             elif val.keycode == 25:
                 self._add_watermark("watermark")
-                self.crop.state(['selected'])
             elif val.keycode == 24:
+                self.crop.state(['selected'])
                 self._switch_draw_mode(DrawMode.CROP)
         elif self.controller.controll_keys["ctrl"] and self.controller.controll_keys["shift"] and not self.controller.controll_keys["alt"]:
             if val.keycode == 54:
-                self._switch_draw_mode(DrawMode.CIRCLE)
                 self.circle.state(['selected'])
+                self._switch_draw_mode(DrawMode.CIRCLE)
             elif val.keycode == 27:
-                self._switch_draw_mode(DrawMode.RECTANGLE)
                 self.rectangle.state(['selected'])
+                self._switch_draw_mode(DrawMode.RECTANGLE)
             elif val.keycode == 46:
-                self._switch_draw_mode(DrawMode.LINE)
                 self.line.state(['selected'])
+                self._switch_draw_mode(DrawMode.LINE)
             elif val.keycode == 41:
-                self._switch_draw_mode(DrawMode.FREEHAND)
                 self.freehand.state(['selected'])
+                self._switch_draw_mode(DrawMode.FREEHAND)
         elif self.controller.controll_keys["alt"] and not self.controller.controll_keys["ctrl"] and not self.controller.controll_keys["shift"]:
             if val.keycode == 113:
                 self.controller.pop_page()
