@@ -87,6 +87,8 @@ class CustomizePage(tk.Frame):
             elif val.keycode == 24:
                 self.crop.state(['selected'])
                 self._switch_draw_mode(DrawMode.CROP)
+            elif val.keycode == 94:
+                self.thickness.current(self.thickness.current() - 1)
         elif self.controller.controll_keys["ctrl"] and self.controller.controll_keys["shift"] and not self.controller.controll_keys["alt"]:
             if val.keycode == 54:
                 self.circle.state(['selected'])
@@ -100,6 +102,8 @@ class CustomizePage(tk.Frame):
             elif val.keycode == 41:
                 self.freehand.state(['selected'])
                 self._switch_draw_mode(DrawMode.FREEHAND)
+            elif val.keycode == 94:
+                self.thickness.current(self.thickness.current() + 1)
         elif self.controller.controll_keys["alt"] and not self.controller.controll_keys["ctrl"] and not self.controller.controll_keys["shift"]:
             if val.keycode == 113:
                 self.controller.pop_page()
