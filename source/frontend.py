@@ -58,19 +58,16 @@ class Application:
 
         self._show_page()
 
-    def check_controll_keys(self, key, event: KeyEvent) -> bool:
-        if event is KeyEvent.UP:
-            if key.keycode == 37 or key.keycode == 105:
-                self.controll_keys["ctrl"] = False
-                print("ctrl up")
+    def check_controll_keys(self, key) -> bool:
+        if key.keycode == 37 or key.keycode == 105:
+            self.controll_keys["ctrl"] = not self.controll_keys["ctrl"]
             return True
-        
-        if event is KeyEvent.DOWN:
-            if key.keycode == 37 or key.keycode == 105:
-                self.controll_keys["ctrl"] = True
-                print("ctrl down")
+        elif key.keycode == 64 or key.keycode == 108:
+            self.controll_keys["alt"] = not self.controll_keys["alt"]
             return True
-        
+        elif key.keycode == 50 or key.keycode == 62:
+            self.controll_keys["shift"] = not self.controll_keys["shift"]
+            return True
         return False
 
     # TODO: für customize image

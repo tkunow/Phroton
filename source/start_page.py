@@ -47,11 +47,11 @@ class StartPage(tk.Frame):
 
         # self.focus_set()
         # keyboard shortcut
-        self.bind("<Left>", lambda val: self._next_image(-1))
-        self.bind("<Right>", lambda val: self._next_image(1))
+        # self.bind("<Left>", lambda val: self._next_image(-1))
+        # self.bind("<Right>", lambda val: self._next_image(1))
 
         self.bind("<Key>", lambda val: self._keyhandler(val))
-        self.bind("<KeyRelease>", lambda val: self.controller.check_controll_keys(val, KeyEvent.UP))
+        self.bind("<KeyRelease>", lambda val: self.controller.check_controll_keys(val))
 
         self.canvas.bind("<ButtonPress-1>", self._mouse_position)
         self.canvas.bind("<B1-Motion>", self._mouse_drag)
@@ -64,8 +64,7 @@ class StartPage(tk.Frame):
         self.canvas.bind("<Configure>", lambda event: self.controller._position_image(self.controller.base_image, self.canvas, self.image_id))
 
     def _keyhandler(self, val):
-        if val.keycode == 37 or val.keycode == 105:
-            self.controller.check_controll_keys(val, KeyEvent.DOWN)
+        if self.controller.check_controll_keys(val):
             return
 
         if self.controller.controll_keys["ctrl"]:
@@ -84,7 +83,10 @@ class StartPage(tk.Frame):
             elif val.keycode == 36:
                 self.controller.add_page(CustomizePage(parent=self.controller.tk_root, controller=self.controller))
         else:
-            print(val.keysym, val.keycode)
+            if val.keycode == 113:
+                self._next_image(-1)
+            elif val.keycode == 114:
+                self._next_image(1)
 
     def _next_image(self, direction: int) -> None:
         if self.controller.image_index + direction < 0:
