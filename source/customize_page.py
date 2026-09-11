@@ -6,7 +6,7 @@ from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
 
 from layout_elements import InteractionBar, ViewFrame, InfoBar
-from custom_types import DrawMode
+from custom_types import DrawMode, KeyEvent
 
 class CustomizePage(tk.Frame):
     def __init__(self, parent, controller) -> None:
@@ -64,12 +64,49 @@ class CustomizePage(tk.Frame):
         self.mode_switch = info_bar.slider(text="mode", command=lambda: self.controller._change_theme(), location=(2,0))
 
         # keyboard shortcut
-        self.focus_set()
         self.canvas.bind("<ButtonPress-1>", self._mouse_start_position)
         self.canvas.bind("<ButtonRelease-1>", self._mouse_draw)
         self.canvas.bind("<B1-Motion>", self._mouse_follow_position)
 
+        self.bind("<Key>", lambda val: self._keyhandler(val))
+        self.bind("<KeyRelease>", lambda val: self.controller.check_controll_keys(val, KeyEvent.UP))
+
         self.last_freehand_position = None
+
+    def _keyhandler(self, val):
+        if self.controller.check_controll_keys(val, KeyEvent.DOWN):
+            return
+
+        if self.controller.controll_keys["ctrl"] and not self.controller.controll_keys["alt"] and not self.controller.controll_keys["shift"]:
+            if val.keycode == 39:
+                self._save_image()
+            elif val.keycode == 54:
+                self._reset_image()
+            elif val.keycode == 25:
+                self._add_watermark("watermark")
+            elif val.keycode == 24:
+                self.crop.state(['selected'])
+                self._switch_draw_mode(DrawMode.CROP)
+            elif val.keycode == 94:
+                self.thickness.current(self.thickness.current() - 1)
+        elif self.controller.controll_keys["ctrl"] and self.controller.controll_keys["shift"] and not self.controller.controll_keys["alt"]:
+            if val.keycode == 54:
+                self.circle.state(['selected'])
+                self._switch_draw_mode(DrawMode.CIRCLE)
+            elif val.keycode == 27:
+                self.rectangle.state(['selected'])
+                self._switch_draw_mode(DrawMode.RECTANGLE)
+            elif val.keycode == 46:
+                self.line.state(['selected'])
+                self._switch_draw_mode(DrawMode.LINE)
+            elif val.keycode == 41:
+                self.freehand.state(['selected'])
+                self._switch_draw_mode(DrawMode.FREEHAND)
+            elif val.keycode == 94:
+                self.thickness.current(self.thickness.current() + 1)
+        elif self.controller.controll_keys["alt"] and not self.controller.controll_keys["ctrl"] and not self.controller.controll_keys["shift"]:
+            if val.keycode == 113:
+                self.controller.pop_page()
 
     def on_show(self) -> None:
         """Start each customization session with the currently selected image."""
@@ -95,7 +132,8 @@ class CustomizePage(tk.Frame):
 
     def _save_image(self) -> None:
         save_name = filedialog.asksaveasfilename(initialfile=self.controller.image_list[self.controller.image_index], filetypes=[("picture", ("*.png", "*.bmp"))])
-        self.controller.cv2_obj.save_image(save_name, self.current_image)
+        if len(save_name) > 0:
+            self.controller.cv2_obj.save_image(save_name, self.current_image)
 
     def _reset_image(self) -> None:
         self.current_image = self.controller.base_image.copy()

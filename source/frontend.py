@@ -6,7 +6,7 @@ from custom_types import Rotation
 from typing import List, Tuple, Literal
 import os
 from constants import PROJECT_ROOT, ASSETS, WORKING_DIR, THEME
-from custom_types import ThemeMode
+from custom_types import ThemeMode, KeyEvent
 from cv2.typing import MatLike
 from start_page import StartPage
 
@@ -26,6 +26,13 @@ class Application:
         self.tk_root.tk.call("source", self.theme_path)
         self.tk_root.tk.call("set_theme", self.mode.lower())
 
+        self.controll_keys = {
+                "ctrl": False,
+                "shift": False,
+                "alt": False
+            }
+        self.tk_root.bind("<FocusOut>", lambda val: self._reset_controll_keys())
+
         self.cv2_obj = ImageView()
         self.base_image = self.cv2_obj.read_image(os.path.join(WORKING_DIR, self.image_list[self.image_index]))
 
@@ -33,11 +40,15 @@ class Application:
         self.page_list.append(StartPage(parent=self.tk_root, controller=self))
         self._show_page()
 
+    def _reset_controll_keys(self) -> None:
+        self.controll_keys = dict.fromkeys(self.controll_keys, False)
+
     def _show_page(self) -> None:
         page = self.page_list[-1]
         if hasattr(page, "on_show"):
             page.on_show()
         page.tkraise()
+        page.focus_set()
 
     def add_page(self, page: ttk.Frame) -> None:
         self.page_list.append(page)
@@ -50,6 +61,29 @@ class Application:
         page.destroy()
 
         self._show_page()
+
+    def check_controll_keys(self, key, event: KeyEvent) -> bool:
+        if event is KeyEvent.UP:
+            if key.keycode == 37 or key.keycode == 105:
+                self.controll_keys["ctrl"] = False
+                return True
+            elif key.keycode == 64 or key.keycode == 108:
+                self.controll_keys["alt"] = False
+                return True
+            elif key.keycode == 50 or key.keycode == 62:
+                self.controll_keys["shift"] = False
+                return True
+        elif event is KeyEvent.DOWN:
+            if key.keycode == 37 or key.keycode == 105:
+                self.controll_keys["ctrl"] = True
+                return True
+            elif key.keycode == 64 or key.keycode == 108:
+                self.controll_keys["alt"] = True
+                return True
+            elif key.keycode == 50 or key.keycode == 62:
+                self.controll_keys["shift"] = True
+                return True
+        return False
 
     # TODO: für customize image
     #def _display_image(self, image, image_id) -> None:
